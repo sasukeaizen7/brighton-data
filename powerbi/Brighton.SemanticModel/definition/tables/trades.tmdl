@@ -1,0 +1,70 @@
+table trades
+	lineageTag: b1b1b92d-b50a-5186-a01a-9023afeb5aeb
+
+	measure 'Achat (M€)' = DIVIDE(SUM(trades[buy_fee_eur]), 1000000)
+		formatString: #,0.0
+		lineageTag: 8c6e3fbf-24fc-59ca-a2c5-2ccfbd0a7d7e
+
+	measure 'Vente (M€)' = DIVIDE(SUM(trades[sell_fee_eur]), 1000000)
+		formatString: #,0.0
+		lineageTag: 6bbff781-7810-5411-ac01-b70afff28d2c
+
+	measure 'Plus-value (M€)' = DIVIDE(SUM(trades[gain_eur]), 1000000)
+		formatString: #,0.0
+		lineageTag: f3aa5783-6a96-526a-ae5d-00a590acf9c5
+
+	measure 'Opérations' = COUNTROWS(trades)
+		formatString: #,0
+		lineageTag: 0c5f8625-895e-545a-ab56-01c5949036ba
+
+	column player
+		dataType: string
+		lineageTag: a5105ab7-ac90-5734-a349-22e44a5cced9
+		summarizeBy: none
+		sourceColumn: player
+
+	column bought_season
+		dataType: string
+		lineageTag: b8b4bc21-f399-50ad-a427-7e0f29790acf
+		summarizeBy: none
+		sourceColumn: bought_season
+
+	column buy_fee_eur
+		dataType: int64
+		lineageTag: c5d09ed7-f173-50cf-a2b0-6337bfea5b4f
+		summarizeBy: none
+		sourceColumn: buy_fee_eur
+
+	column sold_season
+		dataType: string
+		lineageTag: 32aedbc9-4efe-5e90-a177-d2360181badf
+		summarizeBy: none
+		sourceColumn: sold_season
+
+	column sold_to
+		dataType: string
+		lineageTag: c4fb6845-d7cb-5137-a0bc-ecefd1cc3f72
+		summarizeBy: none
+		sourceColumn: sold_to
+
+	column sell_fee_eur
+		dataType: int64
+		lineageTag: b088e719-7e1f-5171-a5c0-fe0ddf657c08
+		summarizeBy: none
+		sourceColumn: sell_fee_eur
+
+	column gain_eur
+		dataType: int64
+		lineageTag: aa0e7f97-0bd6-501f-a31e-78ce38590c65
+		summarizeBy: none
+		sourceColumn: gain_eur
+
+	partition trades = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "trades.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"player", type text}, {"bought_season", type text}, {"buy_fee_eur", Int64.Type}, {"sold_season", type text}, {"sold_to", type text}, {"sell_fee_eur", Int64.Type}, {"gain_eur", Int64.Type}}, "en-US")
+				in
+				    Typed

@@ -6,6 +6,9 @@ const ROOT = path.join(__dirname, '..'), DATA = path.join(ROOT, 'data', 'out'), 
 const NAME = 'Brighton', MODEL = path.join(OUT, `${NAME}.SemanticModel`), REPORT = path.join(OUT, `${NAME}.Report`);
 const schema = JSON.parse(fs.readFileSync(path.join(DATA, 'schema.json'), 'utf8'));
 
+// Transfer tables (src/transfers.js); amounts are shown in millions of euros.
+const transferSchema = JSON.parse(fs.readFileSync(path.join(DATA, 'transfer_schema.json'), 'utf8'));
+const millions = (table, column) => `DIVIDE(SUM(${table}[${column}]), 1000000)`;
 const brighton = m => `CALCULATE([${m}], matches[team] = "Brighton")`;
 const league = m => `CALCULATE([${m}], REMOVEFILTERS(matches[team]))`;
 const latest = m => `VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([${m}], matches[season] = s)`;
@@ -31,6 +34,21 @@ const MEASURES = [
   ['Dernière saison matchs', latest('Matchs') .replace('CALCULATE([Matchs], matches[season] = s)', 'CALCULATE([Matchs], matches[season] = s, matches[team] = "Brighton")'), '#,0'],
 ];
 
+const TABLES = {
+  matches: { columns: schema, measures: MEASURES },
+  transfers: { columns: transferSchema.transfers, measures: [
+    ['Achats (M€)', millions('transfers', 'spent_eur'), '#,0.0'],
+    ['Ventes (M€)', millions('transfers', 'received_eur'), '#,0.0'],
+    ['Solde (M€)', '[Ventes (M€)] - [Achats (M€)]', '#,0.0'],
+  ] },
+  trades: { columns: transferSchema.trades, measures: [
+    ['Achat (M€)', millions('trades', 'buy_fee_eur'), '#,0.0'],
+    ['Vente (M€)', millions('trades', 'sell_fee_eur'), '#,0.0'],
+    ['Plus-value (M€)', millions('trades', 'gain_eur'), '#,0.0'],
+    ['Opérations', 'COUNTROWS(trades)', '#,0'],
+  ] },
+};
+
 const tag = (...p) => {
   const h = crypto.createHash('sha1').update('brighton-data/' + p.join('/')).digest('hex');
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
@@ -50,38 +68,41 @@ function buildModel() {
   write(path.join(MODEL, 'definition.pbism'), { version: '4.0', settings: {} });
   write(path.join(def, 'database.tmdl'), 'database\n\tcompatibilityLevel: 1600\n');
   write(path.join(def, 'model.tmdl'), ['model Model', '\tculture: en-US', '\tdefaultPowerBIDataSourceVersion: powerBI_V3',
-    '\tdiscourageImplicitMeasures', '\tsourceQueryCulture: en-US', '', 'ref table matches', ''].join('\n'));
+    '\tdiscourageImplicitMeasures', '\tsourceQueryCulture: en-US', '', ...Object.keys(TABLES).map(n => `ref table ${n}`), ''].join('\n'));
   write(path.join(def, 'expressions.tmdl'),
     `expression DataFolder = "${DATA + path.sep}" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]\n` +
     `\tlineageTag: ${tag('DataFolder')}\n\n\tannotation PBI_ResultType = Text\n`);
-  const t = [`table matches`, `\tlineageTag: ${tag('matches')}`, ''];
-  for (const [n, e, f] of MEASURES) t.push(`\tmeasure ${quote(n)} = ${e}`, `\t\tformatString: ${f}`, `\t\tlineageTag: ${tag('measure', n)}`, '');
-  for (const [n, type] of schema) {
-    t.push(`\tcolumn ${n}`, `\t\tdataType: ${TMDL[type]}`);
-    if (type === 'date') t.push('\t\tformatString: dd/mm/yyyy');
-    t.push(`\t\tlineageTag: ${tag(n)}`, '\t\tsummarizeBy: none', `\t\tsourceColumn: ${n}`, '');
+  for (const [table, { columns, measures }] of Object.entries(TABLES)) {
+    const t = [`table ${table}`, `\tlineageTag: ${tag(table)}`, ''];
+    for (const [n, e, f] of measures) t.push(`\tmeasure ${quote(n)} = ${e}`, `\t\tformatString: ${f}`, `\t\tlineageTag: ${tag(table, 'measure', n)}`, '');
+    for (const [n, type] of columns) {
+      t.push(`\tcolumn ${n}`, `\t\tdataType: ${TMDL[type]}`);
+      if (type === 'date') t.push('\t\tformatString: dd/mm/yyyy');
+      t.push(`\t\tlineageTag: ${tag(table, n)}`, '\t\tsummarizeBy: none', `\t\tsourceColumn: ${n}`, '');
+    }
+    const types = columns.map(([n, type]) => `{"${n}", ${M[type]}}`).join(', ');
+    t.push(`\tpartition ${table} = m`, '\t\tmode: import', '\t\tsource =', '\t\t\t\tlet',
+      `\t\t\t\t    Source = Csv.Document(File.Contents(DataFolder & "${table}.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),`,
+      '\t\t\t\t    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),',
+      `\t\t\t\t    Typed = Table.TransformColumnTypes(Headers, {${types}}, "en-US")`,
+      '\t\t\t\tin', '\t\t\t\t    Typed', '');
+    write(path.join(def, 'tables', `${table}.tmdl`), t.join('\n'));
   }
-  const types = schema.map(([n, type]) => `{"${n}", ${M[type]}}`).join(', ');
-  t.push('\tpartition matches = m', '\t\tmode: import', '\t\tsource =', '\t\t\t\tlet',
-    '\t\t\t\t    Source = Csv.Document(File.Contents(DataFolder & "matches.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),',
-    '\t\t\t\t    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),',
-    `\t\t\t\t    Typed = Table.TransformColumnTypes(Headers, {${types}}, "en-US")`,
-    '\t\t\t\tin', '\t\t\t\t    Typed', '');
-  write(path.join(def, 'tables', 'matches.tmdl'), t.join('\n'));
 }
 
 // ---------------------------------------------------------------- report (PBIR-Legacy report.json)
-const col = p => ({ p, m: false }), mea = p => ({ p, m: true });
+const col = (p, table = 'matches') => ({ p, m: false, table }), mea = (p, table = 'matches') => ({ p, m: true, table });
 const literal = value => ({ expr: { Literal: { Value: value } } });
 const expr = f => ({ [f.m ? 'Measure' : 'Column']: { Expression: { SourceRef: { Source: 't' } }, Property: f.p } });
 
 function visual(name, type, [x, y, w, h], roles, title, { order, ascending = false, labels = false, objects } = {}) {
   const fields = [...new Map(Object.values(roles).flat().map(f => [f.p, f])).values()];
-  const query = { Version: 2, From: [{ Name: 't', Entity: 'matches', Type: 0 }],
-    Select: fields.map(f => ({ ...expr(f), Name: `matches.${f.p}` })) };
+  const table = fields[0].table; // one table per visual
+  const query = { Version: 2, From: [{ Name: 't', Entity: table, Type: 0 }],
+    Select: fields.map(f => ({ ...expr(f), Name: `${table}.${f.p}` })) };
   if (order) query.OrderBy = [{ Direction: ascending ? 1 : 2, Expression: expr(order) }];
   const projections = Object.fromEntries(Object.entries(roles).map(([role, refs]) =>
-    [role, refs.map((f, i) => ({ queryRef: `matches.${f.p}`, ...(i === 0 && role === 'Category' ? { active: true } : {}) }))]));
+    [role, refs.map((f, i) => ({ queryRef: `${table}.${f.p}`, ...(i === 0 && role === 'Category' ? { active: true } : {}) }))]));
   const config = { name, layouts: [{ id: 0, position: { x, y, z: 0, width: w, height: h } }],
     singleVisual: { visualType: type, projections, prototypeQuery: query, drillFilterOtherVisuals: true,
       vcObjects: { title: [{ properties: { show: literal('true'), text: literal(`'${title.replace(/'/g, "''")}'`),
@@ -129,6 +150,18 @@ function buildReport() {
       visual('t_clubs', 'tableEx', [790, 20, 470, 680], { Values: [col('team'), mea('Matchs'), mea('Total points'), mea('Points par match'), mea('Conversion')] },
         'Points et efficacité par club', { order: mea('Points par match') }),
     ]),
+    page('transferts', 'Transferts', 3, [
+      visual('c_in', 'card', [20, 20, 300, 120], { Values: [mea('Achats (M€)', 'transfers')] }, 'Achats 2017/18 à 2025/26 (M€)'),
+      visual('c_out', 'card', [335, 20, 300, 120], { Values: [mea('Ventes (M€)', 'transfers')] }, 'Ventes sur la période (M€)'),
+      visual('c_bal', 'card', [650, 20, 300, 120], { Values: [mea('Solde (M€)', 'transfers')] }, 'Solde : ventes moins achats (M€)'),
+      visual('c_gain', 'card', [965, 20, 295, 120], { Values: [mea('Plus-value (M€)', 'trades')] }, 'Achetés puis revendus : gain (M€)'),
+      visual('b_season', 'clusteredColumnChart', [20, 155, 620, 545],
+        { Category: [col('season', 'transfers')], Y: [mea('Achats (M€)', 'transfers'), mea('Ventes (M€)', 'transfers')] },
+        'Achats et ventes par saison (M€)', { order: col('season', 'transfers'), ascending: true, labels: true }),
+      visual('t_trades', 'tableEx', [655, 155, 605, 545],
+        { Values: [col('player', 'trades'), col('sold_season', 'trades'), mea('Achat (M€)', 'trades'), mea('Vente (M€)', 'trades'), mea('Plus-value (M€)', 'trades')] },
+        'Joueurs achetés puis revendus (M€)', { order: mea('Plus-value (M€)', 'trades') }),
+    ]),
   ];
   const theme = 'Brighton.json';
   write(path.join(REPORT, 'StaticResources', 'RegisteredResources', theme), { name: 'Brighton data',
@@ -148,4 +181,4 @@ for (const d of [MODEL, REPORT]) fs.rmSync(d, { recursive: true, force: true });
 buildModel();
 buildReport();
 write(path.join(OUT, `${NAME}.pbip`), { version: '1.0', artifacts: [{ report: { path: `${NAME}.Report` } }], settings: { enableAutoRecovery: true } });
-console.log(`wrote powerbi/${NAME}.pbip (${MEASURES.length} measures, 3 pages)`);
+console.log(`wrote powerbi/${NAME}.pbip (${Object.values(TABLES).reduce((n, x) => n + x.measures.length, 0)} measures, 4 pages)`);

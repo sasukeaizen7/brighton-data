@@ -1,0 +1,73 @@
+table transfers
+	lineageTag: fccdc15d-5eb6-5d39-ab2e-32464180ee24
+
+	measure 'Achats (M€)' = DIVIDE(SUM(transfers[spent_eur]), 1000000)
+		formatString: #,0.0
+		lineageTag: 152b0ba6-d540-586e-a821-dbe6a435583d
+
+	measure 'Ventes (M€)' = DIVIDE(SUM(transfers[received_eur]), 1000000)
+		formatString: #,0.0
+		lineageTag: d4b08168-1997-538f-a68c-17f067132a88
+
+	measure 'Solde (M€)' = [Ventes (M€)] - [Achats (M€)]
+		formatString: #,0.0
+		lineageTag: 517771eb-1bcb-59a1-a121-d118577e8335
+
+	column season
+		dataType: string
+		lineageTag: 7ec87ce2-85f6-55a2-a5ec-c89dbab89a41
+		summarizeBy: none
+		sourceColumn: season
+
+	column transfer_date
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 76ca266b-7ae1-555e-a26f-e4c5fbf83005
+		summarizeBy: none
+		sourceColumn: transfer_date
+
+	column player
+		dataType: string
+		lineageTag: f4b0c7cb-b43f-5b05-a811-94237e4b44fa
+		summarizeBy: none
+		sourceColumn: player
+
+	column direction
+		dataType: string
+		lineageTag: e7f7d317-b3eb-5e27-a349-3666678934bb
+		summarizeBy: none
+		sourceColumn: direction
+
+	column other_club
+		dataType: string
+		lineageTag: 6f925eeb-f801-574b-a608-5e8d2a9f42e1
+		summarizeBy: none
+		sourceColumn: other_club
+
+	column fee_eur
+		dataType: int64
+		lineageTag: 38384d50-167b-5a0d-aa95-8c0e49743c51
+		summarizeBy: none
+		sourceColumn: fee_eur
+
+	column spent_eur
+		dataType: int64
+		lineageTag: 0ec55b99-331f-512b-aba1-58b7547a427e
+		summarizeBy: none
+		sourceColumn: spent_eur
+
+	column received_eur
+		dataType: int64
+		lineageTag: e2459767-5a7e-5409-af71-e63eebf90068
+		summarizeBy: none
+		sourceColumn: received_eur
+
+	partition transfers = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "transfers.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"season", type text}, {"transfer_date", type date}, {"player", type text}, {"direction", type text}, {"other_club", type text}, {"fee_eur", Int64.Type}, {"spent_eur", Int64.Type}, {"received_eur", Int64.Type}}, "en-US")
+				in
+				    Typed

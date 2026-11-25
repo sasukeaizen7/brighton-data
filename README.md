@@ -6,11 +6,24 @@ Données : [football-data.co.uk](https://www.football-data.co.uk). Les fichiers 
 ```bash
 node src/download.js        # data/raw
 node src/pipeline.js        # contrôles qualité, puis data/out
+node src/transfers.js       # transferts (fichier à télécharger, voir plus bas)
 node powerbi/build_pbip.js  # modèle et rapport Power BI
 ```
 
 Ouvrir `powerbi/Brighton.pbip` dans Power BI Desktop puis Actualiser. Sans dépendance : Node 18 ou plus.
+
 Après un déplacement du dossier, relancer `build_pbip.js` (le chemin des données est un paramètre `DataFolder`).
+
+## Transferts
+
+`src/transfers.js` lit `data/raw_transfers/transfers.csv.gz`, téléchargé depuis
+[transfermarkt-datasets](https://github.com/dcaribou/transfermarkt-datasets) (dépôt CC0, données Transfermarkt, jusqu'au 06/07/2026).
+Saisons complètes 2017/18 à 2025/26. Montants en euros ; les montants inconnus ne sont pas comptés, un montant nul peut être un transfert libre ou un prêt.
+Une plus-value associe une vente payante au dernier achat payant antérieur du même joueur.
+Écart connu : achat de Caicedo à 28,2 M€ dans la base, environ 4,5 M£ dans la presse. Non corrigé.
+
+![Transferts](images/transferts.jpg)
+
 
 ## Contrôles qualité
 
@@ -20,7 +33,7 @@ Après un déplacement du dossier, relancer `build_pbip.js` (le chemin des donn�
 
 ## Limites
 
-Résultats et tirs uniquement : ni joueurs, ni transferts. Les xG ne sont renseignés que pour 2026/27 et ne sont pas utilisés dans le rapport.
+Matchs : résultats et tirs uniquement. Les xG ne sont renseignés que pour 2026/27 et ne sont pas utilisés dans le rapport.
 Ces données décrivent les résultats de Brighton, pas ses méthodes de recrutement. La saison en cours ne compte que 11 matchs.
 
 ![Progression](images/progression.jpg)

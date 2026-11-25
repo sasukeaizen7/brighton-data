@@ -5,3 +5,5 @@ model Model
 	sourceQueryCulture: en-US
 
 ref table matches
+ref table transfers
+ref table trades
