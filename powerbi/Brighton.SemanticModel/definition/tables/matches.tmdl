@@ -1,0 +1,173 @@
+table matches
+	lineageTag: 9a2302ff-f1e2-5e1a-a3a9-22035efbdeec
+
+	measure Matchs = COUNTROWS(matches)
+		formatString: #,0
+		lineageTag: 2be27077-123a-5d08-acfd-5adadfb3c83d
+
+	measure 'Total points' = SUM(matches[points])
+		formatString: #,0
+		lineageTag: de1b8362-75b2-54bb-a9a2-d5aaae6507a8
+
+	measure 'Points par match' = DIVIDE([Total points], [Matchs])
+		formatString: 0.00
+		lineageTag: 446df554-50fe-5f68-a29e-a908edc4afa7
+
+	measure 'Part des tirs' = DIVIDE(SUM(matches[shots_for]), SUM(matches[shots_for]) + SUM(matches[shots_against]))
+		formatString: 0.0%
+		lineageTag: 94885c96-922c-5234-a3b7-b4d215615880
+
+	measure Conversion = DIVIDE(CALCULATE(SUM(matches[goals_for]), NOT ISBLANK(matches[shots_for])), SUM(matches[shots_for]))
+		formatString: 0.0%
+		lineageTag: b85f4de6-bfe9-5d8b-a7fd-15e90828011e
+
+	measure 'Tirs par match' = AVERAGE(matches[shots_for])
+		formatString: 0.0
+		lineageTag: 682541dd-c04b-53f9-aa1c-1a4c09412a1b
+
+	measure 'Tirs concédés par match' = AVERAGE(matches[shots_against])
+		formatString: 0.0
+		lineageTag: 5ddd0352-efcb-57d5-a60f-ab4462927eb1
+
+	measure 'Brighton points par match' = CALCULATE([Points par match], matches[team] = "Brighton")
+		formatString: 0.00
+		lineageTag: f359e143-0cf1-52f0-a840-3af4e375fa44
+
+	measure 'Championnat points par match' = CALCULATE([Points par match], REMOVEFILTERS(matches[team]))
+		formatString: 0.00
+		lineageTag: 1d2d91c2-7c3e-5fc6-aa05-e3d0887bc532
+
+	measure 'Brighton part des tirs' = CALCULATE([Part des tirs], matches[team] = "Brighton")
+		formatString: 0.0%
+		lineageTag: 83b1646b-487f-5f98-abab-d67108d80a64
+
+	measure 'Équilibre' = 0.5
+		formatString: 0%
+		lineageTag: 76c7e0c6-64dd-56c2-a0c2-d1649e2404a4
+
+	measure 'Brighton conversion' = CALCULATE([Conversion], matches[team] = "Brighton")
+		formatString: 0.0%
+		lineageTag: a088852d-4245-5aed-a156-8c1802aff0d9
+
+	measure 'Championnat conversion' = CALCULATE([Conversion], REMOVEFILTERS(matches[team]))
+		formatString: 0.0%
+		lineageTag: ce0fd1ba-cc7f-5ae3-a20d-0568653cf22a
+
+	measure 'Brighton tirs' = CALCULATE([Tirs par match], matches[team] = "Brighton")
+		formatString: 0.0
+		lineageTag: 39629779-3937-52f4-abbb-5778caadae6a
+
+	measure 'Brighton tirs concédés' = CALCULATE([Tirs concédés par match], matches[team] = "Brighton")
+		formatString: 0.0
+		lineageTag: f1558b07-20db-5bf5-a57d-6c0edb1aa80f
+
+	measure 'Dernière saison points par match' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton points par match], matches[season] = s)
+		formatString: 0.00
+		lineageTag: fb8b8e3c-85ee-588f-a11f-67dff4f0d9c9
+
+	measure 'Dernière saison part des tirs' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton part des tirs], matches[season] = s)
+		formatString: 0.0%
+		lineageTag: c5f97373-7c76-551d-a9c3-5e85b5955ca1
+
+	measure 'Dernière saison conversion' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton conversion], matches[season] = s)
+		formatString: 0.0%
+		lineageTag: b440bea9-a324-5aca-a09b-8c69e65a9ad9
+
+	measure 'Dernière saison matchs' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Matchs], matches[season] = s, matches[team] = "Brighton")
+		formatString: #,0
+		lineageTag: 16e56cf0-f769-533b-a557-a6ee698f69f4
+
+	column season
+		dataType: string
+		lineageTag: 225bf27c-3fb1-5b19-a264-5849bacb08f9
+		summarizeBy: none
+		sourceColumn: season
+
+	column match_date
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		lineageTag: 6d60ba3a-d396-5453-a96a-00de6e18ef88
+		summarizeBy: none
+		sourceColumn: match_date
+
+	column team
+		dataType: string
+		lineageTag: 784161f0-1301-5894-a62e-6b29d948cd19
+		summarizeBy: none
+		sourceColumn: team
+
+	column opponent
+		dataType: string
+		lineageTag: 7f5ed6ca-3ad0-5f38-a9ad-6f0529f2913f
+		summarizeBy: none
+		sourceColumn: opponent
+
+	column venue
+		dataType: string
+		lineageTag: c1429ab3-5ee1-5f7f-aebd-efebb891a726
+		summarizeBy: none
+		sourceColumn: venue
+
+	column goals_for
+		dataType: int64
+		lineageTag: d852a087-cf0d-5b79-a881-cd6b0bffc4a7
+		summarizeBy: none
+		sourceColumn: goals_for
+
+	column goals_against
+		dataType: int64
+		lineageTag: b68f6987-6199-5aaf-a6a2-ace83b613c2b
+		summarizeBy: none
+		sourceColumn: goals_against
+
+	column points
+		dataType: int64
+		lineageTag: 187bc069-d935-512f-a7c7-47b1b53272b9
+		summarizeBy: none
+		sourceColumn: points
+
+	column shots_for
+		dataType: int64
+		lineageTag: 005885a8-7694-55bf-ac8f-2234f3fe8c81
+		summarizeBy: none
+		sourceColumn: shots_for
+
+	column shots_against
+		dataType: int64
+		lineageTag: c690e90b-c742-5f47-ab35-4c557345e481
+		summarizeBy: none
+		sourceColumn: shots_against
+
+	column sot_for
+		dataType: int64
+		lineageTag: 0c53643d-d6f8-505d-a825-02487f7b9724
+		summarizeBy: none
+		sourceColumn: sot_for
+
+	column sot_against
+		dataType: int64
+		lineageTag: 05ceae87-bcc6-5021-a623-98bb0c4e7f4c
+		summarizeBy: none
+		sourceColumn: sot_against
+
+	column xg_for
+		dataType: double
+		lineageTag: 95aefaa8-fb8a-5332-a225-06dcfeed337b
+		summarizeBy: none
+		sourceColumn: xg_for
+
+	column xg_against
+		dataType: double
+		lineageTag: 19ed5af0-17eb-5d61-a220-ee5445897e19
+		summarizeBy: none
+		sourceColumn: xg_against
+
+	partition matches = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "matches.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.None]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"season", type text}, {"match_date", type date}, {"team", type text}, {"opponent", type text}, {"venue", type text}, {"goals_for", Int64.Type}, {"goals_against", Int64.Type}, {"points", Int64.Type}, {"shots_for", Int64.Type}, {"shots_against", Int64.Type}, {"sot_for", Int64.Type}, {"sot_against", Int64.Type}, {"xg_for", type number}, {"xg_against", type number}}, "en-US")
+				in
+				    Typed

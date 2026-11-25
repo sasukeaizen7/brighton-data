@@ -1,0 +1,14 @@
+{
+  "name": "Brighton data",
+  "dataColors": [
+    "#0e7c7b",
+    "#e8505b",
+    "#7cc4c1",
+    "#1c2430",
+    "#eda100",
+    "#5b6472"
+  ],
+  "background": "#fbf8f5",
+  "foreground": "#1c2430",
+  "tableAccent": "#0e7c7b"
+}

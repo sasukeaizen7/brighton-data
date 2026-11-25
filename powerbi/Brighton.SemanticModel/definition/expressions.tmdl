@@ -1,0 +1,4 @@
+expression DataFolder = "C:\Projets\brighton-data\data\out\" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: a34d7cfc-b66d-571f-a9e5-10bf22f45f25
+
+	annotation PBI_ResultType = Text
