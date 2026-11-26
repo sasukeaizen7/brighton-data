@@ -1,81 +1,81 @@
 table matches
 	lineageTag: 9a2302ff-f1e2-5e1a-a3a9-22035efbdeec
 
-	measure Matchs = COUNTROWS(matches)
+	measure 'Matches played' = COUNTROWS(matches)
 		formatString: #,0
-		lineageTag: 692aaa7c-075e-5966-a7bd-4a15f3f99b74
+		lineageTag: 9c5ed9f6-fbf6-5d9b-a0d3-a9c2bf1055f7
 
 	measure 'Total points' = SUM(matches[points])
 		formatString: #,0
 		lineageTag: 84be0bc2-b3c6-5c82-a097-c190c050f651
 
-	measure 'Points par match' = DIVIDE([Total points], [Matchs])
+	measure 'Points per match' = DIVIDE([Total points], [Matches played])
 		formatString: 0.00
-		lineageTag: eca5f597-2e0f-5191-a5ae-b0cd5208e476
+		lineageTag: 1789c49a-933b-57bb-a6d2-e53361b404de
 
-	measure 'Part des tirs' = DIVIDE(SUM(matches[shots_for]), SUM(matches[shots_for]) + SUM(matches[shots_against]))
+	measure 'Shot share' = DIVIDE(SUM(matches[shots_for]), SUM(matches[shots_for]) + SUM(matches[shots_against]))
 		formatString: 0.0%
-		lineageTag: b910d0ea-fb70-5a3f-acd4-73bce393bc41
+		lineageTag: f3eac9d0-a9d1-549d-a4ae-503af6aa9b71
 
 	measure Conversion = DIVIDE(CALCULATE(SUM(matches[goals_for]), NOT ISBLANK(matches[shots_for])), SUM(matches[shots_for]))
 		formatString: 0.0%
 		lineageTag: c36cc29c-e6b6-5cf0-a0b9-68711a7e5221
 
-	measure 'Tirs par match' = AVERAGE(matches[shots_for])
+	measure 'Shots per match' = AVERAGE(matches[shots_for])
 		formatString: 0.0
-		lineageTag: ff9daeb9-14d0-538e-a36b-c5666e0f3756
+		lineageTag: bf13dcc1-4d6f-5a80-a60c-3ea9fc333c99
 
-	measure 'Tirs concédés par match' = AVERAGE(matches[shots_against])
+	measure 'Shots conceded per match' = AVERAGE(matches[shots_against])
 		formatString: 0.0
-		lineageTag: f3cae238-e549-5d9f-a648-8e265d2a8594
+		lineageTag: 6d78b98c-13d7-5a4f-a512-a285a19567d2
 
-	measure 'Brighton points par match' = CALCULATE([Points par match], matches[team] = "Brighton")
+	measure 'Brighton points per match' = CALCULATE([Points per match], matches[team] = "Brighton")
 		formatString: 0.00
-		lineageTag: f71e8218-a890-5cc8-ac7d-6df0e59896d1
+		lineageTag: c7315932-14ba-548f-a57c-07d7770fc16e
 
-	measure 'Championnat points par match' = CALCULATE([Points par match], REMOVEFILTERS(matches[team]))
+	measure 'League points per match' = CALCULATE([Points per match], REMOVEFILTERS(matches[team]))
 		formatString: 0.00
-		lineageTag: 789483a6-6b14-5444-ad73-1a90559d8607
+		lineageTag: 55e48dff-a3a5-55e1-a3bc-8f3af5a6e799
 
-	measure 'Brighton part des tirs' = CALCULATE([Part des tirs], matches[team] = "Brighton")
+	measure 'Brighton shot share' = CALCULATE([Shot share], matches[team] = "Brighton")
 		formatString: 0.0%
-		lineageTag: d7776895-7ad3-55af-aa57-f4a440140fe2
+		lineageTag: 9ef23a3d-f4d2-545b-a25c-bca4316fbcf8
 
-	measure 'Équilibre' = 0.5
+	measure 'Even share' = 0.5
 		formatString: 0%
-		lineageTag: 3664b4cb-9d04-5075-aba4-a38f27e5b6cd
+		lineageTag: ea11f095-c24a-5c6b-a6f6-e2a96d7589f9
 
 	measure 'Brighton conversion' = CALCULATE([Conversion], matches[team] = "Brighton")
 		formatString: 0.0%
 		lineageTag: 5314abcf-adc2-5a31-a13d-8206f64ada4a
 
-	measure 'Championnat conversion' = CALCULATE([Conversion], REMOVEFILTERS(matches[team]))
+	measure 'League conversion' = CALCULATE([Conversion], REMOVEFILTERS(matches[team]))
 		formatString: 0.0%
-		lineageTag: d100ab5c-091c-517e-a5dc-d5b024340a40
+		lineageTag: 3eccbf55-80ed-507b-a3b8-5106b8e97f91
 
-	measure 'Brighton tirs' = CALCULATE([Tirs par match], matches[team] = "Brighton")
+	measure 'Brighton shots' = CALCULATE([Shots per match], matches[team] = "Brighton")
 		formatString: 0.0
-		lineageTag: 258d10d2-cb9d-570d-ac58-59a1f5ebc950
+		lineageTag: 02bc6c00-0fc2-52dc-a527-66dd1accd7be
 
-	measure 'Brighton tirs concédés' = CALCULATE([Tirs concédés par match], matches[team] = "Brighton")
+	measure 'Brighton shots conceded' = CALCULATE([Shots conceded per match], matches[team] = "Brighton")
 		formatString: 0.0
-		lineageTag: 5ea39baa-d17e-50ab-a30e-8a0fe3c5cf41
+		lineageTag: 8f6ce4c8-e121-5170-abb9-4bb810fd9990
 
-	measure 'Dernière saison points par match' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton points par match], matches[season] = s)
+	measure 'Latest season points per match' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton points per match], matches[season] = s)
 		formatString: 0.00
-		lineageTag: abcd4043-5ecd-5a67-ae49-3ab698bdd814
+		lineageTag: e99d4d95-696e-54bc-ab11-3eef9905de67
 
-	measure 'Dernière saison part des tirs' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton part des tirs], matches[season] = s)
+	measure 'Latest season shot share' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton shot share], matches[season] = s)
 		formatString: 0.0%
-		lineageTag: e0b478e1-58c3-5715-a267-80e48c45005f
+		lineageTag: 405cc3e8-7533-5d4b-a0be-7f1a30ba1b76
 
-	measure 'Dernière saison conversion' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton conversion], matches[season] = s)
+	measure 'Latest season conversion' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Brighton conversion], matches[season] = s)
 		formatString: 0.0%
-		lineageTag: 8a421a88-b277-5113-ac55-6f48bdd797d0
+		lineageTag: 18b7bf83-da58-5215-ac7c-5039a467e585
 
-	measure 'Dernière saison matchs' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Matchs], matches[season] = s, matches[team] = "Brighton")
+	measure 'Latest season matches' = VAR s = CALCULATE(MAX(matches[season]), REMOVEFILTERS(matches)) RETURN CALCULATE([Matches played], matches[season] = s, matches[team] = "Brighton")
 		formatString: #,0
-		lineageTag: 9e1a4e70-6f17-5c33-a438-c95d32ac3e6a
+		lineageTag: 3f449738-16eb-578f-a1a1-2ecba2af651e
 
 	column season
 		dataType: string

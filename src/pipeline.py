@@ -19,7 +19,7 @@ STATS = ["FTHG", "FTAG", "HS", "AS", "HST", "AST"]
 
 
 def label(season: str) -> str:
-    return f"20{season[:2]}/{season[2:]}" + (" (en cours)" if season == CURRENT else "")
+    return f"20{season[:2]}/{season[2:]}" + (" (in progress)" if season == CURRENT else "")
 
 
 def read(season: str) -> list[dict]:
@@ -76,7 +76,7 @@ def team_row(season: str, match: dict, home: bool) -> dict:
     return {
         "season": label(season), "match_date": f"{year}-{month}-{day}",
         "team": pick("HomeTeam", "AwayTeam"), "opponent": pick("AwayTeam", "HomeTeam"),
-        "venue": "Domicile" if home else "Extérieur",
+        "venue": "Home" if home else "Away",
         "goals_for": goals_for, "goals_against": goals_against,
         "points": 3 if goals_for > goals_against else 1 if goals_for == goals_against else 0,
         "shots_for": shot("HS", "AS"), "shots_against": shot("AS", "HS"),

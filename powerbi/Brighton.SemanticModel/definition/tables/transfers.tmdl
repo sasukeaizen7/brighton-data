@@ -1,17 +1,17 @@
 table transfers
 	lineageTag: fccdc15d-5eb6-5d39-ab2e-32464180ee24
 
-	measure 'Achats (M€)' = DIVIDE(SUM(transfers[spent_eur]), 1000000)
+	measure 'Spent (€M)' = DIVIDE(SUM(transfers[spent_eur]), 1000000)
 		formatString: #,0.0
-		lineageTag: 152b0ba6-d540-586e-a821-dbe6a435583d
+		lineageTag: a0cdde32-686c-5090-a3fa-1960ee77051c
 
-	measure 'Ventes (M€)' = DIVIDE(SUM(transfers[received_eur]), 1000000)
+	measure 'Received (€M)' = DIVIDE(SUM(transfers[received_eur]), 1000000)
 		formatString: #,0.0
-		lineageTag: d4b08168-1997-538f-a68c-17f067132a88
+		lineageTag: e190661e-89b5-555e-a877-02dae80fbf52
 
-	measure 'Solde (M€)' = [Ventes (M€)] - [Achats (M€)]
+	measure 'Balance (€M)' = [Received (€M)] - [Spent (€M)]
 		formatString: #,0.0
-		lineageTag: 517771eb-1bcb-59a1-a121-d118577e8335
+		lineageTag: e47f26ef-a56a-57b8-ab4f-b2a8b2534384
 
 	column season
 		dataType: string

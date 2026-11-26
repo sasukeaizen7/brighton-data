@@ -59,7 +59,7 @@ def to_row(record: dict) -> dict:
     return {
         "season": f"20{record['transfer_season']}", "transfer_date": record["transfer_date"],
         "player_id": record["player_id"], "player": record["player_name"],
-        "direction": "Arrivée" if arrival else "Départ",
+        "direction": "In" if arrival else "Out",
         "other_club": record["from_club_name"] if arrival else record["to_club_name"],
         "fee_eur": fee,
         "spent_eur": fee if arrival and fee != "" else 0,
@@ -71,9 +71,9 @@ def match_trades(rows: list[dict]) -> list[dict]:
     """A trade = a paid departure matched with the latest earlier paid arrival of the same player."""
     trades = []
     for sale in rows:
-        if sale["direction"] != "Départ" or not sale["received_eur"]:
+        if sale["direction"] != "Out" or not sale["received_eur"]:
             continue
-        buys = [b for b in rows if b["player_id"] == sale["player_id"] and b["direction"] == "Arrivée"
+        buys = [b for b in rows if b["player_id"] == sale["player_id"] and b["direction"] == "In"
                 and b["spent_eur"] and b["transfer_date"] < sale["transfer_date"]]
         if buys:
             buy = buys[-1]

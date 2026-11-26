@@ -1,21 +1,21 @@
 table trades
 	lineageTag: b1b1b92d-b50a-5186-a01a-9023afeb5aeb
 
-	measure 'Achat (M€)' = DIVIDE(SUM(trades[buy_fee_eur]), 1000000)
+	measure 'Bought for (€M)' = DIVIDE(SUM(trades[buy_fee_eur]), 1000000)
 		formatString: #,0.0
-		lineageTag: 8c6e3fbf-24fc-59ca-a2c5-2ccfbd0a7d7e
+		lineageTag: 83ab5851-3f7b-5d8b-a167-2d0c96e70545
 
-	measure 'Vente (M€)' = DIVIDE(SUM(trades[sell_fee_eur]), 1000000)
+	measure 'Sold for (€M)' = DIVIDE(SUM(trades[sell_fee_eur]), 1000000)
 		formatString: #,0.0
-		lineageTag: 6bbff781-7810-5411-ac01-b70afff28d2c
+		lineageTag: 135897d4-277e-5f40-a5af-a644aedb9379
 
-	measure 'Plus-value (M€)' = DIVIDE(SUM(trades[gain_eur]), 1000000)
+	measure 'Gain (€M)' = DIVIDE(SUM(trades[gain_eur]), 1000000)
 		formatString: #,0.0
-		lineageTag: f3aa5783-6a96-526a-ae5d-00a590acf9c5
+		lineageTag: 8a726290-ba85-544e-a875-f55de4bfdcb2
 
-	measure 'Opérations' = COUNTROWS(trades)
+	measure 'Number of trades' = COUNTROWS(trades)
 		formatString: #,0
-		lineageTag: 0c5f8625-895e-545a-ab56-01c5949036ba
+		lineageTag: a5650b44-cf1a-5a0a-ada1-cf30e5969430
 
 	column player
 		dataType: string

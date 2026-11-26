@@ -42,39 +42,39 @@ def millions(table: str, column: str) -> str:
 
 MEASURES = {
     "matches": [
-        ("Matchs", "COUNTROWS(matches)", "#,0"),
+        ("Matches played", "COUNTROWS(matches)", "#,0"),
         ("Total points", "SUM(matches[points])", "#,0"),
-        ("Points par match", "DIVIDE([Total points], [Matchs])", "0.00"),
-        ("Part des tirs",
+        ("Points per match", "DIVIDE([Total points], [Matches played])", "0.00"),
+        ("Shot share",
          "DIVIDE(SUM(matches[shots_for]), SUM(matches[shots_for]) + SUM(matches[shots_against]))", "0.0%"),
         ("Conversion",
          "DIVIDE(CALCULATE(SUM(matches[goals_for]), NOT ISBLANK(matches[shots_for])), SUM(matches[shots_for]))",
          "0.0%"),
-        ("Tirs par match", "AVERAGE(matches[shots_for])", "0.0"),
-        ("Tirs concédés par match", "AVERAGE(matches[shots_against])", "0.0"),
-        ("Brighton points par match", brighton("Points par match"), "0.00"),
-        ("Championnat points par match", league("Points par match"), "0.00"),
-        ("Brighton part des tirs", brighton("Part des tirs"), "0.0%"),
-        ("Équilibre", "0.5", "0%"),
+        ("Shots per match", "AVERAGE(matches[shots_for])", "0.0"),
+        ("Shots conceded per match", "AVERAGE(matches[shots_against])", "0.0"),
+        ("Brighton points per match", brighton("Points per match"), "0.00"),
+        ("League points per match", league("Points per match"), "0.00"),
+        ("Brighton shot share", brighton("Shot share"), "0.0%"),
+        ("Even share", "0.5", "0%"),
         ("Brighton conversion", brighton("Conversion"), "0.0%"),
-        ("Championnat conversion", league("Conversion"), "0.0%"),
-        ("Brighton tirs", brighton("Tirs par match"), "0.0"),
-        ("Brighton tirs concédés", brighton("Tirs concédés par match"), "0.0"),
-        ("Dernière saison points par match", latest("Brighton points par match"), "0.00"),
-        ("Dernière saison part des tirs", latest("Brighton part des tirs"), "0.0%"),
-        ("Dernière saison conversion", latest("Brighton conversion"), "0.0%"),
-        ("Dernière saison matchs", latest("Matchs", ', matches[team] = "Brighton"'), "#,0"),
+        ("League conversion", league("Conversion"), "0.0%"),
+        ("Brighton shots", brighton("Shots per match"), "0.0"),
+        ("Brighton shots conceded", brighton("Shots conceded per match"), "0.0"),
+        ("Latest season points per match", latest("Brighton points per match"), "0.00"),
+        ("Latest season shot share", latest("Brighton shot share"), "0.0%"),
+        ("Latest season conversion", latest("Brighton conversion"), "0.0%"),
+        ("Latest season matches", latest("Matches played", ', matches[team] = "Brighton"'), "#,0"),
     ],
     "transfers": [
-        ("Achats (M€)", millions("transfers", "spent_eur"), "#,0.0"),
-        ("Ventes (M€)", millions("transfers", "received_eur"), "#,0.0"),
-        ("Solde (M€)", "[Ventes (M€)] - [Achats (M€)]", "#,0.0"),
+        ("Spent (€M)", millions("transfers", "spent_eur"), "#,0.0"),
+        ("Received (€M)", millions("transfers", "received_eur"), "#,0.0"),
+        ("Balance (€M)", "[Received (€M)] - [Spent (€M)]", "#,0.0"),
     ],
     "trades": [
-        ("Achat (M€)", millions("trades", "buy_fee_eur"), "#,0.0"),
-        ("Vente (M€)", millions("trades", "sell_fee_eur"), "#,0.0"),
-        ("Plus-value (M€)", millions("trades", "gain_eur"), "#,0.0"),
-        ("Opérations", "COUNTROWS(trades)", "#,0"),
+        ("Bought for (€M)", millions("trades", "buy_fee_eur"), "#,0.0"),
+        ("Sold for (€M)", millions("trades", "sell_fee_eur"), "#,0.0"),
+        ("Gain (€M)", millions("trades", "gain_eur"), "#,0.0"),
+        ("Number of trades", "COUNTROWS(trades)", "#,0"),
     ],
 }
 
@@ -204,9 +204,9 @@ def card(name: str, position: tuple, measure: str, title: str, table: str = "mat
 def trend(name: str, kind: str, position: tuple, measures: list, title: str) -> dict:
     """Axes start at zero so differences are not exaggerated; the 50 % reference line has no data labels."""
     labels = [{"properties": {"show": literal("true"), "labelDisplayUnits": literal("1D")}}]
-    if "Équilibre" in measures:
+    if "Even share" in measures:
         labels.append({"properties": {"showSeries": literal("false")},
-                       "selector": {"metadata": "matches.Équilibre"}})
+                       "selector": {"metadata": "matches.Even share"}})
     return visual(name, kind, position, {"Category": [col("season")], "Y": [mea(m) for m in measures]}, title,
                   order=col("season"), ascending=True,
                   objects={"valueAxis": [{"properties": {"start": literal("0D")}}], "labels": labels})
@@ -218,44 +218,44 @@ def page(name: str, display: str, ordinal: int, visuals: list) -> dict:
 
 
 def pages() -> list:
-    progression = page("progression", "La progression", 0, [
-        card("c_ppm", (20, 20, 300, 120), "Dernière saison points par match", "Points par match, 2026/27"),
-        card("c_share", (335, 20, 300, 120), "Dernière saison part des tirs", "Part des tirs, 2026/27"),
-        card("c_conv", (650, 20, 300, 120), "Dernière saison conversion", "Tirs convertis en buts, 2026/27"),
-        card("c_n", (965, 20, 295, 120), "Dernière saison matchs", "Matchs joués, saison en cours"),
+    progression = page("progression", "Progress", 0, [
+        card("c_ppm", (20, 20, 300, 120), "Latest season points per match", "Points per match, 2026/27"),
+        card("c_share", (335, 20, 300, 120), "Latest season shot share", "Shot share, 2026/27"),
+        card("c_conv", (650, 20, 300, 120), "Latest season conversion", "Shot conversion, 2026/27"),
+        card("c_n", (965, 20, 295, 120), "Latest season matches", "Matches played, current season"),
         trend("l_ppm", "lineChart", (20, 155, 620, 545),
-              ["Brighton points par match", "Championnat points par match"], "Points par match : Brighton et la moyenne"),
+              ["Brighton points per match", "League points per match"], "Points per match: Brighton and the average"),
         trend("l_share", "lineChart", (655, 155, 605, 545),
-              ["Brighton part des tirs", "Équilibre"], "Part des tirs de Brighton dans ses matchs"),
+              ["Brighton shot share", "Even share"], "Brighton's share of shots in its matches"),
     ])
-    shots = page("tirs", "Créer et concéder", 1, [
+    shots = page("tirs", "Shots", 1, [
         trend("b_shots", "clusteredColumnChart", (20, 20, 1240, 345),
-              ["Brighton tirs", "Brighton tirs concédés"], "Brighton : tirs par match, créés et concédés"),
+              ["Brighton shots", "Brighton shots conceded"], "Brighton: shots per match, taken and conceded"),
         trend("l_conv", "lineChart", (20, 380, 1240, 320),
-              ["Brighton conversion", "Championnat conversion"], "Part des tirs convertis en buts"),
+              ["Brighton conversion", "League conversion"], "Share of shots converted into goals"),
     ])
-    clubs = page("clubs", "Comparer les clubs", 2, [
-        visual("s_season", "slicer", (20, 20, 280, 680), {"Values": [col("season")]}, "Choisir une saison"),
+    clubs = page("clubs", "Club comparison", 2, [
+        visual("s_season", "slicer", (20, 20, 280, 680), {"Values": [col("season")]}, "Choose a season"),
         visual("b_clubs", "clusteredBarChart", (315, 20, 460, 680),
-               {"Category": [col("team")], "Y": [mea("Part des tirs")]}, "Part des tirs par club",
-               order=mea("Part des tirs"), labels=True),
+               {"Category": [col("team")], "Y": [mea("Shot share")]}, "Shot share by club",
+               order=mea("Shot share"), labels=True),
         visual("t_clubs", "tableEx", (790, 20, 470, 680),
-               {"Values": [col("team"), mea("Matchs"), mea("Total points"), mea("Points par match"), mea("Conversion")]},
-               "Points et efficacité par club", order=mea("Points par match")),
+               {"Values": [col("team"), mea("Matches played"), mea("Total points"), mea("Points per match"), mea("Conversion")]},
+               "Points and efficiency by club", order=mea("Points per match")),
     ])
     t, d = "transfers", "trades"
-    transfers = page("transferts", "Transferts", 3, [
-        card("c_in", (20, 20, 300, 120), "Achats (M€)", "Achats 2017/18 à 2025/26 (M€)", t),
-        card("c_out", (335, 20, 300, 120), "Ventes (M€)", "Ventes sur la période (M€)", t),
-        card("c_bal", (650, 20, 300, 120), "Solde (M€)", "Solde : ventes moins achats (M€)", t),
-        card("c_gain", (965, 20, 295, 120), "Plus-value (M€)", "Achetés puis revendus : gain (M€)", d),
+    transfers = page("transferts", "Transfers", 3, [
+        card("c_in", (20, 20, 300, 120), "Spent (€M)", "Spent 2017/18 to 2025/26 (€M)", t),
+        card("c_out", (335, 20, 300, 120), "Received (€M)", "Received over the period (€M)", t),
+        card("c_bal", (650, 20, 300, 120), "Balance (€M)", "Balance: received minus spent (€M)", t),
+        card("c_gain", (965, 20, 295, 120), "Gain (€M)", "Bought then sold: gain (€M)", d),
         visual("b_season", "clusteredColumnChart", (20, 155, 620, 545),
-               {"Category": [col("season", t)], "Y": [mea("Achats (M€)", t), mea("Ventes (M€)", t)]},
-               "Achats et ventes par saison (M€)", order=col("season", t), ascending=True, labels=True),
+               {"Category": [col("season", t)], "Y": [mea("Spent (€M)", t), mea("Received (€M)", t)]},
+               "Spent and received by season (€M)", order=col("season", t), ascending=True, labels=True),
         visual("t_trades", "tableEx", (655, 155, 605, 545),
-               {"Values": [col("player", d), col("sold_season", d), mea("Achat (M€)", d), mea("Vente (M€)", d),
-                           mea("Plus-value (M€)", d)]},
-               "Joueurs achetés puis revendus (M€)", order=mea("Plus-value (M€)", d)),
+               {"Values": [col("player", d), col("sold_season", d), mea("Bought for (€M)", d), mea("Sold for (€M)", d),
+                           mea("Gain (€M)", d)]},
+               "Players bought then sold (€M)", order=mea("Gain (€M)", d)),
     ])
     return [progression, shots, clubs, transfers]
 
