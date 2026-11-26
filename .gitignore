@@ -1,3 +1,3 @@
 data/
-powerbi/.pbi/
 **/.pbi/
+__pycache__/
